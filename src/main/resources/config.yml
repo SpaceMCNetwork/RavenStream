@@ -1,19 +1,35 @@
-# Mensajes principales
-messages:
-  # El mensaje que se enviará al chat global
-  stream_message:
-    - '&a¡El streamer &e%player% &aestá en directo!'
-    - '&a&lPlataforma: &b%platform%'
-    - '&a&lEnlace: &7%link%'
-  
-  # Mensaje de error si el jugador no tiene el permiso necesario
-  no_permission: '&cNo tienes permiso para usar este comando.'
-  
-  # Mensaje de error si el comando se usa de forma incorrecta
-  usage: '&cUso incorrecto del comando: /directo <link>'
-  
-  # Mensaje de cooldown
-  cooldown_message: '&cDebes esperar %cooldown% segundos para volver a usar el comando.'
-
 # Cooldown en segundos
 cooldown: 300
+
+# Mensajes de error y generales
+messages:
+  no_permission: '&cNo tienes permiso para usar este comando.'
+  usage: '&cUso incorrecto del comando: /directo <link>'
+  cooldown_message: '&cDebes esperar %cooldown% segundos para volver a usar el comando.'
+  invalid_link: '&cEl enlace no es de una plataforma de streaming válida (YouTube, Twitch, Kick, TikTok).'
+
+# Configuración de mensajes por plataforma
+platforms:
+  twitch:
+    message:
+      - '&5&l¡TWITCH STREAM!'
+      - '&d&lEl streamer &f%player% &dha comenzado un directo.'
+      - '&5&lVe a verlo ahora: &f%link%'
+  
+  youtube:
+    message:
+      - '&c&l¡YOUTUBE LIVE!'
+      - '&f&lEl youtuber &c%player% &festá en directo ahora.'
+      - '&c&lEnlace: &f%link%'
+      
+  kick:
+    message:
+      - '&a&l¡KICK STREAM!'
+      - '&a&lEl streamer &f%player% &aha comenzado.'
+      - '&a&lVe a verlo aquí: &f%link%'
+      
+  tiktok:
+    message:
+      - '&0&l¡TIKTOK LIVE!'
+      - '&0&lEl creador &f%player% &0está transmitiendo.'
+      - '&0&lEntra a su directo: &f%link%'
