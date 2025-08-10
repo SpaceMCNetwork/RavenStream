@@ -1,17 +1,34 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.tuusuario</groupId>
     <artifactId>RavenStream</artifactId>
     <version>1.0.0</version>
+    <packaging>jar</packaging>
+
     <name>RavenStream</name>
+    <description>Plugin para Velocity 3.4.0-SNAPSHOT</description>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <java.version>17</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <repositories>
+        <!-- Repositorio con Velocity SNAPSHOT -->
+        <repository>
+            <id>loohpjames-snapshots</id>
+            <url>https://repo.loohpjames.com/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <dependencies>
         <!-- Velocity API -->
@@ -22,30 +39,55 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- SnakeYAML para manejar config.yml -->
+        <!-- Anotaciones opcionales (para @Inject, etc.) -->
         <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>2.2</version>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>5.1.0</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Para compilar y empaquetar dependencias dentro del jar -->
+            <!-- Compilador de Java -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.10.1</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
+            <!-- Sombrear dependencias si es necesario -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.4.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
+                        <configuration>
+                            <minimizeJar>false</minimizeJar>
+                            <relocations>
+                                <!-- Ejemplo: para evitar conflictos de dependencias -->
+                                <!--
+                                <relocation>
+                                    <pattern>com.example.lib</pattern>
+                                    <shadedPattern>com.tuusuario.libs.example</shadedPattern>
+                                </relocation>
+                                -->
+                            </relocations>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
+
 </project>
