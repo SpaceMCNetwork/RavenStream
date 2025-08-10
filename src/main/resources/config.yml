@@ -1,0 +1,22 @@
+message-format:
+  youtube: |
+    &a[YouTube] &e{player} &festa en directo:
+    &b{link}
+  twitch: |
+    &5[Twitch] &e{player} &festa en directo:
+    &d{link}
+  tiktok: |
+    &2[TikTok] &e{player} &festa en directo:
+    &a{link}
+  kick: |
+    &9[Kick] &e{player} &festa en directo:
+    &3{link}
+
+# Mensaje cuando no tiene permiso
+no-permission: "&cNo tienes permiso para usar este comando."
+
+# Mensaje cuando está en cooldown
+cooldown-message: "&eDebes esperar {time} segundos antes de usar este comando otra vez."
+
+# Cooldown en segundos
+cooldown: 60
