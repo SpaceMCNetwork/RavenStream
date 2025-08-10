@@ -43,17 +43,46 @@ public class RavenStream {
         loadConfig();
         
         CommandManager commandManager = server.getCommandManager();
-        // Cambiamos 'new DirectoCommand(...)' por 'DirectoCommand.class'
         commandManager.register(commandManager.metaBuilder("directo").build(), DirectoCommand.class);
         
         logger.info("El plugin RavenStream ha sido inicializado.");
     }
+    
+    private void loadConfig() {
+        if (!Files.exists(dataDirectory)) {
+            try {
+                Files.createDirectories(dataDirectory);
+            } catch (IOException e) {
+                logger.error("Error al crear la carpeta de datos del plugin: " + e.getMessage());
+                return;
+            }
+        }
+        
+        File configFile = new File(dataDirectory.toFile(), "config.yml");
+        if (!configFile.exists()) {
+            try (InputStream in = getClass().getResourceAsStream("/config.yml")) {
+                Files.copy(in, configFile.toPath());
+            } catch (IOException e) {
+                logger.error("No se pudo crear el archivo de configuración: " + e.getMessage());
+            }
+        }
 
-    // ... (el resto del código es el mismo)
+        try {
+            Yaml yaml = new Yaml();
+            config = yaml.load(Files.newBufferedReader(configFile.toPath()));
+        } catch (IOException e) {
+            logger.error("No se pudo cargar el archivo de configuración: " + e.getMessage());
+        }
+    }
+    
     public ProxyServer getServer() {
         return this.server;
     }
 
+    /**
+     * Devuelve el mapa de configuración del plugin.
+     * @return el mapa de configuración cargado desde config.yml.
+     */
     public Map<String, Object> getConfig() {
         return this.config;
     }
