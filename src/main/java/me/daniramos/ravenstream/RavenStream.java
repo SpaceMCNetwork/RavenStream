@@ -39,10 +39,8 @@ public class RavenStream {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        // Cargar el archivo de configuración
         loadConfig();
         
-        // Registrar el comando
         CommandManager commandManager = server.getCommandManager();
         commandManager.register(commandManager.metaBuilder("directo").build(), new DirectoCommand(this, config));
         
@@ -76,7 +74,7 @@ public class RavenStream {
         }
     }
     
-    public Properties getConfig() {
-        return config;
+    public ProxyServer getServer() {
+        return this.server;
     }
 }
