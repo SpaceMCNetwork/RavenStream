@@ -18,7 +18,6 @@ public class DirectoCommand implements SimpleCommand {
     private final LegacyComponentSerializer serializer = LegacyComponentSerializer.builder().hexColors().character('&').build();
     private final ConcurrentHashMap<String, Long> cooldowns = new ConcurrentHashMap<>();
 
-    // Constructor que recibe las dependencias
     public DirectoCommand(ProxyServer server, Map<String, Object> config) {
         this.server = server;
         this.config = config;
@@ -95,6 +94,55 @@ public class DirectoCommand implements SimpleCommand {
         
         cooldowns.put(playerUuid, currentTime);
     }
+
+    @Override
+    public boolean hasPermission(SimpleCommand.Invocation invocation) {
+        return invocation.source().hasPermission("ravenstream.use");
+    }
+
+    private String getPlatform(String link) {
+        if (link.contains("twitch.tv")) return "Twitch";
+        if (link.contains("youtube.com") || link.contains("youtu.be")) return "YouTube";
+        if (link.contains("kick.com")) return "Kick";
+        if (link.contains("tiktok.com")) return "TikTok";
+        return null;
+    }
     
-    // ... (el resto del código es el mismo, incluyendo los métodos hasPermission, getPlatform y centerText)
+    private String centerText(String text) {
+        int chatWidth = 320;
+        int textWidth = 0;
+        boolean isBold = false;
+        
+        String cleanText = text.replaceAll("(?i)&[0-9a-fklmnor]|&#[0-9a-f]{6}", "");
+
+        int spaceWidth = 4;
+        
+        for (char c : cleanText.toCharArray()) {
+            if (c == ' ') {
+                textWidth += isBold ? 4 : 3;
+            } else if ("i,.:;|!".indexOf(c) != -1) {
+                textWidth += isBold ? 2 : 1;
+            } else if ("l".indexOf(c) != -1) {
+                textWidth += isBold ? 4 : 3;
+            } else if ("k".indexOf(c) != -1) {
+                textWidth += isBold ? 6 : 5;
+            } else {
+                textWidth += isBold ? 5 : 4;
+            }
+        }
+        
+        if (textWidth >= chatWidth) {
+            return text;
+        }
+
+        int spaces = (int) Math.floor((double) (chatWidth - textWidth) / spaceWidth / 2);
+        
+        StringBuilder centeredText = new StringBuilder();
+        for (int i = 0; i < spaces; i++) {
+            centeredText.append(" ");
+        }
+        centeredText.append(text);
+        
+        return centeredText.toString();
+    }
 }
