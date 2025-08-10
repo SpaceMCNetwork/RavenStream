@@ -69,30 +69,3 @@ public class DirectoCommand implements SimpleCommand {
         }
         
         String platform = getPlatform(link);
-
-        if (platform == null) {
-            String message = (String) ((Map<String, Object>) config.get("messages")).get("invalid_link");
-            player.sendMessage(serializer.deserialize(message));
-            return;
-        }
-
-        Map<String, Object> platforms = (Map<String, Object>) config.get("platforms");
-        if (platforms == null) {
-            player.sendMessage(Component.text("Error en la configuración: La sección 'platforms' no existe."));
-            return;
-        }
-
-        Map<String, Object> platformConfig = (Map<String, Object>) platforms.get(platform.toLowerCase());
-        if (platformConfig == null) {
-            player.sendMessage(Component.text("Error en la configuración: La plataforma '" + platform + "' no está configurada."));
-            return;
-        }
-
-        List<String> messageLines = (List<String>) platformConfig.get("message");
-        if (messageLines == null || messageLines.isEmpty()) {
-            player.sendMessage(Component.text("Error en la configuración: El mensaje para la plataforma '" + platform + "' no está definido."));
-            return;
-        }
-
-        for (String line : messageLines) {
-            String formattedLine = line
