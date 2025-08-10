@@ -1,22 +1,23 @@
-message-format:
-  youtube: |
-    &a[YouTube] &e{player} &festa en directo:
-    &b{link}
-  twitch: |
-    &5[Twitch] &e{player} &festa en directo:
-    &d{link}
-  tiktok: |
-    &2[TikTok] &e{player} &festa en directo:
-    &a{link}
-  kick: |
-    &9[Kick] &e{player} &festa en directo:
-    &3{link}
+permission: "ravenstream.use"
 
-# Mensaje cuando no tiene permiso
-no-permission: "&cNo tienes permiso para usar este comando."
+cooldown-seconds: 60
 
-# Mensaje cuando está en cooldown
-cooldown-message: "&eDebes esperar {time} segundos antes de usar este comando otra vez."
+cooldown-message:
+  - "&cDebes esperar {time} segundos antes de usar este comando de nuevo."
 
-# Cooldown en segundos
-cooldown: 60
+no-permission-message:
+  - "&cNo tienes permiso para usar este comando."
+
+platforms:
+  twitch:
+    - "&5[Directo] &f{player} está en vivo en &dTwitch&f:"
+    - "&e{link}"
+  youtube:
+    - "&c[Directo] &f{player} está en vivo en &cYouTube&f:"
+    - "&e{link}"
+  kick:
+    - "&a[Directo] &f{player} está en vivo en &aKick&f:"
+    - "&e{link}"
+  tiktok:
+    - "&d[Directo] &f{player} está en vivo en &dTikTok&f:"
+    - "&e{link}"
