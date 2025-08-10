@@ -1,0 +1,8 @@
+{
+  "id": "ravenstream",
+  "name": "RavenStream",
+  "version": "1.0.0",
+  "main": "me.daniramos.ravenstream.RavenStream",
+  "authors": ["DaniRamos"],
+  "dependencies": []
+}
