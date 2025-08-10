@@ -69,3 +69,61 @@ public class DirectoCommand implements SimpleCommand {
         }
         
         String platform = getPlatform(link);
+
+        if (platform == null) {
+            String message = (String) ((Map<String, Object>) config.get("messages")).get("invalid_link");
+            player.sendMessage(serializer.deserialize(message));
+            return;
+        }
+
+        Map<String, Object> platforms = (Map<String, Object>) config.get("platforms");
+        if (platforms == null) {
+            player.sendMessage(Component.text("Error en la configuración: La sección 'platforms' no existe."));
+            return;
+        }
+
+        Map<String, Object> platformConfig = (Map<String, Object>) platforms.get(platform.toLowerCase());
+        if (platformConfig == null) {
+            player.sendMessage(Component.text("Error en la configuración: La plataforma '" + platform + "' no está configurada."));
+            return;
+        }
+
+        List<String> messageLines = (List<String>) platformConfig.get("message");
+        if (messageLines == null || messageLines.isEmpty()) {
+            player.sendMessage(Component.text("Error en la configuración: El mensaje para la plataforma '" + platform + "' no está definido."));
+            return;
+        }
+
+        for (String line : messageLines) {
+            String formattedLine = line
+                .replace("%player%", player.getUsername())
+                .replace("%link%", link);
+            server.getAllPlayers().forEach(p -> p.sendMessage(serializer.deserialize(centerText(formattedLine))));
+        }
+        
+        cooldowns.put(playerUuid, currentTime);
+    }
+
+    @Override
+    public boolean hasPermission(SimpleCommand.Invocation invocation) {
+        return invocation.source().hasPermission("ravenstream.use");
+    }
+
+    private String getPlatform(String link) {
+        if (link.contains("twitch.tv")) return "Twitch";
+        if (link.contains("youtube.com") || link.contains("youtu.be")) return "YouTube";
+        if (link.contains("kick.com")) return "Kick";
+        if (link.contains("tiktok.com")) return "TikTok";
+        return null;
+    }
+    
+    private static final int CHAT_WIDTH = 320;
+    private static final Map<Character, Integer> CHAR_WIDTHS = new HashMap<>();
+    
+    static {
+        CHAR_WIDTHS.put(' ', 4);
+        CHAR_WIDTHS.put('!', 2);
+        CHAR_WIDTHS.put('"', 5);
+        CHAR_WIDTHS.put('#', 6);
+        CHAR_WIDTHS.put('$', 6);
+        CHAR_WIDTHS.put('%', 6);
