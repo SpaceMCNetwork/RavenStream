@@ -88,4 +88,11 @@ public class DirectoCommand implements SimpleCommand {
             return;
         }
 
-        List
+        List<String> messageLines = (List<String>) platformConfig.get("message");
+        if (messageLines == null || messageLines.isEmpty()) {
+            player.sendMessage(Component.text("Error en la configuración: El mensaje para la plataforma '" + platform + "' no está definido."));
+            return;
+        }
+
+        for (String line : messageLines) {
+            String formattedLine = line
