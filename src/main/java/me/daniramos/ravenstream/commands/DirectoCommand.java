@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.HashMap;
 
 public class DirectoCommand implements SimpleCommand {
 
@@ -60,15 +61,12 @@ public class DirectoCommand implements SimpleCommand {
 
         String link = invocation.arguments()[0];
         
-        // --- INICIO DEL CAMBIO ---
-        // Verificar y agregar el prefijo "https://www." si es necesario
         if (!link.startsWith("https://")) {
             link = "https://" + link;
         }
         if (!link.startsWith("https://www.")) {
              link = link.replace("https://", "https://www.");
         }
-        // --- FIN DEL CAMBIO ---
         
         String platform = getPlatform(link);
 
@@ -119,37 +117,150 @@ public class DirectoCommand implements SimpleCommand {
         return null;
     }
     
+    private static final int CHAT_WIDTH = 320;
+    private static final int CHAT_CHARACTER_SPACING = 1;
+    private static final int CHAT_PADDING = 2;
+    private static final Map<Character, Integer> CHAR_WIDTH = new HashMap<>();
+    
+    static {
+        CHAR_WIDTH.put(' ', 4);
+        CHAR_WIDTH.put('!', 2);
+        CHAR_WIDTH.put('"', 5);
+        CHAR_WIDTH.put('#', 6);
+        CHAR_WIDTH.put('$', 6);
+        CHAR_WIDTH.put('%', 6);
+        CHAR_WIDTH.put('&', 6);
+        CHAR_WIDTH.put('\'', 3);
+        CHAR_WIDTH.put('(', 5);
+        CHAR_WIDTH.put(')', 5);
+        CHAR_WIDTH.put('*', 5);
+        CHAR_WIDTH.put('+', 6);
+        CHAR_WIDTH.put(',', 2);
+        CHAR_WIDTH.put('-', 6);
+        CHAR_WIDTH.put('.', 2);
+        CHAR_WIDTH.put('/', 6);
+        CHAR_WIDTH.put('0', 6);
+        CHAR_WIDTH.put('1', 6);
+        CHAR_WIDTH.put('2', 6);
+        CHAR_WIDTH.put('3', 6);
+        CHAR_WIDTH.put('4', 6);
+        CHAR_WIDTH.put('5', 6);
+        CHAR_WIDTH.put('6', 6);
+        CHAR_WIDTH.put('7', 6);
+        CHAR_WIDTH.put('8', 6);
+        CHAR_WIDTH.put('9', 6);
+        CHAR_WIDTH.put(':', 2);
+        CHAR_WIDTH.put(';', 2);
+        CHAR_WIDTH.put('<', 5);
+        CHAR_WIDTH.put('=', 6);
+        CHAR_WIDTH.put('>', 5);
+        CHAR_WIDTH.put('?', 6);
+        CHAR_WIDTH.put('@', 7);
+        CHAR_WIDTH.put('A', 6);
+        CHAR_WIDTH.put('B', 6);
+        CHAR_WIDTH.put('C', 6);
+        CHAR_WIDTH.put('D', 6);
+        CHAR_WIDTH.put('E', 6);
+        CHAR_WIDTH.put('F', 6);
+        CHAR_WIDTH.put('G', 6);
+        CHAR_WIDTH.put('H', 6);
+        CHAR_WIDTH.put('I', 4);
+        CHAR_WIDTH.put('J', 6);
+        CHAR_WIDTH.put('K', 6);
+        CHAR_WIDTH.put('L', 6);
+        CHAR_WIDTH.put('M', 6);
+        CHAR_WIDTH.put('N', 6);
+        CHAR_WIDTH.put('O', 6);
+        CHAR_WIDTH.put('P', 6);
+        CHAR_WIDTH.put('Q', 6);
+        CHAR_WIDTH.put('R', 6);
+        CHAR_WIDTH.put('S', 6);
+        CHAR_WIDTH.put('T', 6);
+        CHAR_WIDTH.put('U', 6);
+        CHAR_WIDTH.put('V', 6);
+        CHAR_WIDTH.put('W', 6);
+        CHAR_WIDTH.put('X', 6);
+        CHAR_WIDTH.put('Y', 6);
+        CHAR_WIDTH.put('Z', 6);
+        CHAR_WIDTH.put('[', 4);
+        CHAR_WIDTH.put('\\', 6);
+        CHAR_WIDTH.put(']', 4);
+        CHAR_WIDTH.put('^', 6);
+        CHAR_WIDTH.put('_', 6);
+        CHAR_WIDTH.put('`', 3);
+        CHAR_WIDTH.put('a', 6);
+        CHAR_WIDTH.put('b', 6);
+        CHAR_WIDTH.put('c', 6);
+        CHAR_WIDTH.put('d', 6);
+        CHAR_WIDTH.put('e', 6);
+        CHAR_WIDTH.put('f', 5);
+        CHAR_WIDTH.put('g', 6);
+        CHAR_WIDTH.put('h', 6);
+        CHAR_WIDTH.put('i', 2);
+        CHAR_WIDTH.put('j', 6);
+        CHAR_WIDTH.put('k', 5);
+        CHAR_WIDTH.put('l', 3);
+        CHAR_WIDTH.put('m', 6);
+        CHAR_WIDTH.put('n', 6);
+        CHAR_WIDTH.put('o', 6);
+        CHAR_WIDTH.put('p', 6);
+        CHAR_WIDTH.put('q', 6);
+        CHAR_WIDTH.put('r', 6);
+        CHAR_WIDTH.put('s', 6);
+        CHAR_WIDTH.put('t', 4);
+        CHAR_WIDTH.put('u', 6);
+        CHAR_WIDTH.put('v', 6);
+        CHAR_WIDTH.put('w', 6);
+        CHAR_WIDTH.put('x', 6);
+        CHAR_WIDTH.put('y', 6);
+        CHAR_WIDTH.put('z', 6);
+        CHAR_WIDTH.put('{', 5);
+        CHAR_WIDTH.put('|', 2);
+        CHAR_WIDTH.put('}', 5);
+        CHAR_WIDTH.put('~', 7);
+    }
+    
     private String centerText(String text) {
-        int chatWidth = 320;
+        String cleanText = text.replaceAll("(?i)&[0-9a-fklmnor]|&#[0-9a-f]{6}", "");
+        
         int textWidth = 0;
         boolean isBold = false;
         
-        String cleanText = text.replaceAll("(?i)&[0-9a-fklmnor]|&#[0-9a-f]{6}", "");
-
-        int spaceWidth = 4;
-        
-        for (char c : cleanText.toCharArray()) {
-            if (c == ' ') {
-                textWidth += isBold ? 4 : 3;
-            } else if ("i,.:;|!".indexOf(c) != -1) {
-                textWidth += isBold ? 2 : 1;
-            } else if ("l".indexOf(c) != -1) {
-                textWidth += isBold ? 4 : 3;
-            } else if ("k".indexOf(c) != -1) {
-                textWidth += isBold ? 6 : 5;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            
+            if (c == '&' && i + 1 < text.length()) {
+                char code = text.charAt(i + 1);
+                if (code == 'l' || code == 'L') {
+                    isBold = true;
+                    i++;
+                } else if ("0123456789abcdefklmnor".indexOf(code) != -1) {
+                    isBold = false;
+                    i++;
+                } else if (code == '#') {
+                    if (i + 7 < text.length()) {
+                        isBold = false;
+                        i += 7;
+                    }
+                }
             } else {
-                textWidth += isBold ? 5 : 4;
+                int charWidth = CHAR_WIDTH.getOrDefault(c, 6);
+                if (isBold) {
+                    textWidth += charWidth + CHAT_CHARACTER_SPACING;
+                } else {
+                    textWidth += charWidth;
+                }
             }
         }
+
+        int spacesToCenter = (CHAT_WIDTH - textWidth) / (CHAR_WIDTH.getOrDefault(' ', 4) + CHAT_PADDING);
         
-        if (textWidth >= chatWidth) {
+        if (spacesToCenter < 0) {
             return text;
         }
-
-        int spaces = (int) Math.floor((double) (chatWidth - textWidth) / spaceWidth / 2);
         
         StringBuilder centeredText = new StringBuilder();
-        for (int i = 0; i < spaces; i++) {
+        for (int i = 0; i < spacesToCenter; i++) {
             centeredText.append(" ");
         }
         centeredText.append(text);
