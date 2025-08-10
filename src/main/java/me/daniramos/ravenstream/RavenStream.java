@@ -1,141 +1,75 @@
-package me.danielortega.ravenstream;
+package me.daniramos.ravenstream;
 
-import com.velocitypowered.api.command.CommandSource;
-import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.plugin.Plugin;
-import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import com.velocitypowered.api.event.Subscribe;
+import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
+import com.google.inject.Inject;
+import me.daniramos.ravenstream.commands.DirectoCommand;
 import org.slf4j.Logger;
 import org.yaml.snakeyaml.Yaml;
 
-import javax.inject.Inject;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Map;
 
 @Plugin(
         id = "ravenstream",
         name = "RavenStream",
         version = "1.0.0",
-        authors = {"Daniel Ortega"}
+        authors = {"DaniRamos"}
 )
 public class RavenStream {
 
     private final ProxyServer server;
     private final Logger logger;
-    private final Path dataDirectory;
     private Map<String, Object> config;
-    private final Map<UUID, Long> cooldowns = new HashMap<>();
+    private final Path dataFolder;
 
     @Inject
-    public RavenStream(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
+    public RavenStream(ProxyServer server, Logger logger, Path dataFolder) {
         this.server = server;
         this.logger = logger;
-        this.dataDirectory = dataDirectory;
+        this.dataFolder = dataFolder;
     }
 
-    @com.velocitypowered.api.plugin.annotation.Subscribe
-    public void onProxyInitialization(com.velocitypowered.api.event.proxy.ProxyInitializeEvent event) {
+    @Subscribe
+    public void onProxyInitialization(ProxyInitializeEvent event) {
         loadConfig();
-
-        server.getCommandManager().register("directo", new DirectoCommand());
+        server.getCommandManager().register("directo", new DirectoCommand(this));
         logger.info("RavenStream cargado correctamente.");
     }
 
-    private void loadConfig() {
+    public void loadConfig() {
         try {
-            if (!Files.exists(dataDirectory)) {
-                Files.createDirectories(dataDirectory);
+            if (!Files.exists(dataFolder)) {
+                Files.createDirectories(dataFolder);
             }
-            Path configPath = dataDirectory.resolve("config.yml");
+            Path configPath = dataFolder.resolve("config.yml");
             if (!Files.exists(configPath)) {
-                try (InputStream in = getClass().getResourceAsStream("/config.yml")) {
+                try (InputStream in = getClass().getClassLoader().getResourceAsStream("config.yml")) {
                     Files.copy(in, configPath);
                 }
             }
-            Yaml yaml = new Yaml();
-            try (InputStream inputStream = Files.newInputStream(configPath)) {
-                config = yaml.load(inputStream);
+            try (InputStream input = Files.newInputStream(configPath)) {
+                Yaml yaml = new Yaml();
+                config = yaml.load(input);
             }
         } catch (IOException e) {
-            logger.error("No se pudo cargar el config.yml", e);
+            logger.error("Error cargando config.yml", e);
         }
     }
 
-    private class DirectoCommand implements SimpleCommand {
+    public Map<String, Object> getConfig() {
+        return config;
+    }
 
-        @Override
-        public void execute(Invocation invocation) {
-            CommandSource source = invocation.source();
-            if (!(source instanceof com.velocitypowered.api.proxy.Player player)) {
-                source.sendMessage(MiniMessage.miniMessage().deserialize("<red>Este comando solo puede ejecutarse como jugador."));
-                return;
-            }
+    public ProxyServer getServer() {
+        return server;
+    }
 
-            if (!player.hasPermission("ravenstream.use")) {
-                String msg = (String) config.getOrDefault("no-permission", "&cNo tienes permiso.");
-                player.sendMessage(MiniMessage.miniMessage().deserialize(translateColors(msg)));
-                return;
-            }
-
-            String[] args = invocation.arguments();
-            if (args.length != 1) {
-                player.sendMessage(MiniMessage.miniMessage().deserialize("<yellow>Uso: /directo <link>"));
-                return;
-            }
-
-            String link = args[0];
-            String platform = detectPlatform(link);
-
-            if (platform == null) {
-                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Plataforma no soportada."));
-                return;
-            }
-
-            long now = System.currentTimeMillis();
-            long cooldownSeconds = ((Number) config.getOrDefault("cooldown", 60)).longValue();
-            if (cooldowns.containsKey(player.getUniqueId()) && (now - cooldowns.get(player.getUniqueId())) < cooldownSeconds * 1000) {
-                long timeLeft = cooldownSeconds - ((now - cooldowns.get(player.getUniqueId())) / 1000);
-                String cdMsg = (String) config.getOrDefault("cooldown-message", "&eDebes esperar {time} segundos.");
-                player.sendMessage(MiniMessage.miniMessage().deserialize(translateColors(cdMsg.replace("{time}", String.valueOf(timeLeft)))));
-                return;
-            }
-
-            cooldowns.put(player.getUniqueId(), now);
-
-            String format = getPlatformFormat(platform);
-            if (format == null) {
-                player.sendMessage(MiniMessage.miniMessage().deserialize("<red>No hay formato configurado para esta plataforma."));
-                return;
-            }
-
-            String finalMsg = format.replace("{player}", player.getUsername()).replace("{link}", link);
-            for (String line : finalMsg.split("\n")) {
-                server.sendMessage(MiniMessage.miniMessage().deserialize(translateColors(line)));
-            }
-        }
-
-        private String detectPlatform(String link) {
-            if (link.contains("youtube.com") || link.contains("youtu.be")) return "youtube";
-            if (link.contains("twitch.tv")) return "twitch";
-            if (link.contains("tiktok.com")) return "tiktok";
-            if (link.contains("kick.com")) return "kick";
-            return null;
-        }
-
-        private String getPlatformFormat(String platform) {
-            Object formats = config.get("message-format");
-            if (formats instanceof Map<?, ?> map) {
-                Object f = map.get(platform);
-                if (f != null) return f.toString();
-            }
-            return null;
-        }
-
-        private String translateColors(String text) {
-            return text.replace("&", "§");
-        }
+    public Logger getLogger() {
+        return logger;
     }
 }
