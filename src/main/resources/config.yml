@@ -1,23 +1,19 @@
-permission: "ravenstream.use"
+# Mensajes principales
+messages:
+  # El mensaje que se enviará al chat global
+  stream_message:
+    - '&a¡El streamer &e%player% &aestá en directo!'
+    - '&a&lPlataforma: &b%platform%'
+    - '&a&lEnlace: &7%link%'
+  
+  # Mensaje de error si el jugador no tiene el permiso necesario
+  no_permission: '&cNo tienes permiso para usar este comando.'
+  
+  # Mensaje de error si el comando se usa de forma incorrecta
+  usage: '&cUso incorrecto del comando: /directo <link>'
+  
+  # Mensaje de cooldown
+  cooldown_message: '&cDebes esperar %cooldown% segundos para volver a usar el comando.'
 
-cooldown-seconds: 60
-
-cooldown-message:
-  - "&cDebes esperar {time} segundos antes de usar este comando de nuevo."
-
-no-permission-message:
-  - "&cNo tienes permiso para usar este comando."
-
-platforms:
-  twitch:
-    - "&5[Directo] &f{player} está en vivo en &dTwitch&f:"
-    - "&e{link}"
-  youtube:
-    - "&c[Directo] &f{player} está en vivo en &cYouTube&f:"
-    - "&e{link}"
-  kick:
-    - "&a[Directo] &f{player} está en vivo en &aKick&f:"
-    - "&e{link}"
-  tiktok:
-    - "&d[Directo] &f{player} está en vivo en &dTikTok&f:"
-    - "&e{link}"
+# Cooldown en segundos
+cooldown: 300
