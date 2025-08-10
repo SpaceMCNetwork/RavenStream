@@ -83,11 +83,3 @@ public class DirectoCommand implements SimpleCommand {
         }
 
         Map<String, Object> platformConfig = (Map<String, Object>) platforms.get(platform.toLowerCase());
-        if (platformConfig == null) {
-            player.sendMessage(Component.text("Error en la configuración: La plataforma '" + platform + "' no está configurada."));
-            return;
-        }
-
-        List<String> messageLines = (List<String>) platformConfig.get("message");
-        if (messageLines == null || messageLines.isEmpty()) {
-            player.sendMessage(Component.text("Error en la configuración: El
