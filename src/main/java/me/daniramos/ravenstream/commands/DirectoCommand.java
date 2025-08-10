@@ -7,9 +7,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class DirectoCommand implements SimpleCommand {
 
@@ -32,14 +29,12 @@ public class DirectoCommand implements SimpleCommand {
 
         Player player = (Player) invocation.source();
         String playerUuid = player.getUniqueId().toString();
-        
-        // Verificar permisos
+
         if (!player.hasPermission("ravenstream.use")) {
             player.sendMessage(serializer.deserialize(config.getProperty("messages.no_permission")));
             return;
         }
 
-        // Verificar el cooldown
         long currentTime = System.currentTimeMillis();
         long cooldownDuration = Long.parseLong(config.getProperty("cooldown", "300")) * 1000;
         
@@ -52,7 +47,6 @@ public class DirectoCommand implements SimpleCommand {
             }
         }
         
-        // Obtener el argumento del link
         if (invocation.arguments().length == 0) {
             player.sendMessage(serializer.deserialize(config.getProperty("messages.usage")));
             return;
@@ -66,28 +60,24 @@ public class DirectoCommand implements SimpleCommand {
             return;
         }
 
-        // Construir el mensaje de la plataforma
         String platformKey = "platforms." + platform.toLowerCase() + ".message";
-        String message = config.getProperty(platformKey);
-        
-        if (message == null || message.isEmpty()) {
+        String messageLines = config.getProperty(platformKey);
+
+        if (messageLines == null || messageLines.isEmpty()) {
             player.sendMessage(Component.text("El mensaje para esta plataforma no está configurado correctamente."));
             return;
         }
 
-        // Reemplazar placeholders y enviar el mensaje
-        String[] messageLines = message.split("\n");
-        for (String line : messageLines) {
+        for (String line : messageLines.split("\n")) {
             String formattedLine = line
                 .replace("%player%", player.getUsername())
                 .replace("%link%", link);
-            plugin.getServer().getAllPlayers().forEach(p -> p.sendMessage(serializer.deserialize(formattedLine)));
+            plugin.getServer().getAllPlayers().forEach(p -> p.sendMessage(serializer.deserialize(centerText(formattedLine))));
         }
         
-        // Actualizar el cooldown del jugador
         cooldowns.put(playerUuid, currentTime);
     }
-    
+
     @Override
     public boolean hasPermission(SimpleCommand.Invocation invocation) {
         return invocation.source().hasPermission("ravenstream.use");
@@ -99,5 +89,46 @@ public class DirectoCommand implements SimpleCommand {
         if (link.contains("kick.com")) return "Kick";
         if (link.contains("tiktok.com")) return "TikTok";
         return null;
+    }
+    
+    private String centerText(String text) {
+        int chatWidth = 320;
+        int textWidth = 0;
+        boolean isBold = false;
+        
+        // Simplemente simplificamos el cálculo del ancho de caracteres para que sea mas facil de entender.
+        int spaceWidth = 4; // Ancho del espacio por defecto
+        
+        for (char c : text.toCharArray()) {
+            if (c == '&') {
+                isBold = text.charAt(text.indexOf(c) + 1) == 'l';
+                continue;
+            }
+            if (c == ' ') {
+                textWidth += isBold ? 4 : 3;
+            } else if ("i,.:;|!".indexOf(c) != -1) {
+                textWidth += isBold ? 2 : 1;
+            } else if ("l".indexOf(c) != -1) {
+                textWidth += isBold ? 4 : 3;
+            } else if ("k".indexOf(c) != -1) {
+                textWidth += isBold ? 6 : 5;
+            } else {
+                textWidth += isBold ? 5 : 4;
+            }
+        }
+        
+        if (textWidth >= chatWidth) {
+            return text;
+        }
+
+        int spaces = (int) Math.floor((double) (chatWidth - textWidth) / spaceWidth / 2);
+        
+        StringBuilder centeredText = new StringBuilder();
+        for (int i = 0; i < spaces; i++) {
+            centeredText.append(" ");
+        }
+        centeredText.append(text);
+        
+        return centeredText.toString();
     }
 }
