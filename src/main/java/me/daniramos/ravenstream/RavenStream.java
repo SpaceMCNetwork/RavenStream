@@ -43,7 +43,8 @@ public class RavenStream {
         loadConfig();
         
         CommandManager commandManager = server.getCommandManager();
-        commandManager.register(commandManager.metaBuilder("directo").build(), DirectoCommand.class);
+        // Se crea una nueva instancia del comando y se le pasan las dependencias.
+        commandManager.register(commandManager.metaBuilder("directo").build(), new DirectoCommand(this.server, this.config));
         
         logger.info("El plugin RavenStream ha sido inicializado.");
     }
@@ -73,17 +74,5 @@ public class RavenStream {
         } catch (IOException e) {
             logger.error("No se pudo cargar el archivo de configuración: " + e.getMessage());
         }
-    }
-    
-    public ProxyServer getServer() {
-        return this.server;
-    }
-
-    /**
-     * Devuelve el mapa de configuración del plugin.
-     * @return el mapa de configuración cargado desde config.yml.
-     */
-    public Map<String, Object> getConfig() {
-        return this.config;
     }
 }
