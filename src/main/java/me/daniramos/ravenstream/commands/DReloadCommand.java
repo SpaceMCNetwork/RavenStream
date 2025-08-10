@@ -2,14 +2,15 @@ package com.daniramos.ravenstream.commands;
 
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.command.SimpleCommand.Invocation;
-import com.velocitypowered.api.proxy.Player;
 import com.daniramos.ravenstream.RavenStream;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import java.util.Map;
 
 public class DReloadCommand implements SimpleCommand {
 
     private final RavenStream plugin;
+    private final LegacyComponentSerializer serializer = LegacyComponentSerializer.builder().hexColors().character('&').build();
 
     public DReloadCommand(RavenStream plugin) {
         this.plugin = plugin;
@@ -17,12 +18,16 @@ public class DReloadCommand implements SimpleCommand {
 
     @Override
     public void execute(Invocation invocation) {
+        Map<String, Object> config = plugin.getConfig();
+        String noPermissionMessage = (String) ((Map<String, Object>) config.get("messages")).get("no_reload_permission");
+        String reloadSuccessMessage = (String) ((Map<String, Object>) config.get("messages")).get("reload_success");
+        
         if (!invocation.source().hasPermission("ravenstream.reload")) {
-            invocation.source().sendMessage(Component.text("No tienes permiso para usar este comando.", NamedTextColor.RED));
+            invocation.source().sendMessage(serializer.deserialize(noPermissionMessage));
             return;
         }
 
         plugin.reloadConfig();
-        invocation.source().sendMessage(Component.text("Configuración de RavenStream recargada.", NamedTextColor.GREEN));
+        invocation.source().sendMessage(serializer.deserialize(reloadSuccessMessage));
     }
 }
