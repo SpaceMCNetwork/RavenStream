@@ -13,8 +13,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Properties;
+import java.util.Map;
 import org.slf4j.Logger;
+import org.yaml.snakeyaml.Yaml;
 
 @Plugin(
     id = "ravenstream",
@@ -28,7 +29,7 @@ public class RavenStream {
     private final ProxyServer server;
     private final Logger logger;
     private final Path dataDirectory;
-    private Properties config;
+    private Map<String, Object> config;
 
     @Inject
     public RavenStream(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
@@ -67,8 +68,8 @@ public class RavenStream {
         }
 
         try {
-            config = new Properties();
-            config.load(Files.newBufferedReader(configFile.toPath()));
+            Yaml yaml = new Yaml();
+            config = yaml.load(Files.newBufferedReader(configFile.toPath()));
         } catch (IOException e) {
             logger.error("No se pudo cargar el archivo de configuración: " + e.getMessage());
         }
