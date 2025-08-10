@@ -1,4 +1,4 @@
-package me.daniramos.ravenstream.commands;
+package com.daniramos.ravenstream.commands;
 
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
@@ -8,6 +8,8 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.HashMap;
 
 public class DirectoCommand implements SimpleCommand {
@@ -115,47 +117,150 @@ public class DirectoCommand implements SimpleCommand {
         return null;
     }
     
+    private static final int CHAT_WIDTH = 320;
+    private static final int CHAT_CHARACTER_SPACING = 1;
+    private static final int CHAT_PADDING = 2;
+    private static final Map<Character, Integer> CHAR_WIDTH = new HashMap<>();
+    
+    static {
+        CHAR_WIDTH.put(' ', 4);
+        CHAR_WIDTH.put('!', 2);
+        CHAR_WIDTH.put('"', 5);
+        CHAR_WIDTH.put('#', 6);
+        CHAR_WIDTH.put('$', 6);
+        CHAR_WIDTH.put('%', 6);
+        CHAR_WIDTH.put('&', 6);
+        CHAR_WIDTH.put('\'', 3);
+        CHAR_WIDTH.put('(', 5);
+        CHAR_WIDTH.put(')', 5);
+        CHAR_WIDTH.put('*', 5);
+        CHAR_WIDTH.put('+', 6);
+        CHAR_WIDTH.put(',', 2);
+        CHAR_WIDTH.put('-', 6);
+        CHAR_WIDTH.put('.', 2);
+        CHAR_WIDTH.put('/', 6);
+        CHAR_WIDTH.put('0', 6);
+        CHAR_WIDTH.put('1', 6);
+        CHAR_WIDTH.put('2', 6);
+        CHAR_WIDTH.put('3', 6);
+        CHAR_WIDTH.put('4', 6);
+        CHAR_WIDTH.put('5', 6);
+        CHAR_WIDTH.put('6', 6);
+        CHAR_WIDTH.put('7', 6);
+        CHAR_WIDTH.put('8', 6);
+        CHAR_WIDTH.put('9', 6);
+        CHAR_WIDTH.put(':', 2);
+        CHAR_WIDTH.put(';', 2);
+        CHAR_WIDTH.put('<', 5);
+        CHAR_WIDTH.put('=', 6);
+        CHAR_WIDTH.put('>', 5);
+        CHAR_WIDTH.put('?', 6);
+        CHAR_WIDTH.put('@', 7);
+        CHAR_WIDTH.put('A', 6);
+        CHAR_WIDTH.put('B', 6);
+        CHAR_WIDTH.put('C', 6);
+        CHAR_WIDTH.put('D', 6);
+        CHAR_WIDTH.put('E', 6);
+        CHAR_WIDTH.put('F', 6);
+        CHAR_WIDTH.put('G', 6);
+        CHAR_WIDTH.put('H', 6);
+        CHAR_WIDTH.put('I', 4);
+        CHAR_WIDTH.put('J', 6);
+        CHAR_WIDTH.put('K', 6);
+        CHAR_WIDTH.put('L', 6);
+        CHAR_WIDTH.put('M', 6);
+        CHAR_WIDTH.put('N', 6);
+        CHAR_WIDTH.put('O', 6);
+        CHAR_WIDTH.put('P', 6);
+        CHAR_WIDTH.put('Q', 6);
+        CHAR_WIDTH.put('R', 6);
+        CHAR_WIDTH.put('S', 6);
+        CHAR_WIDTH.put('T', 6);
+        CHAR_WIDTH.put('U', 6);
+        CHAR_WIDTH.put('V', 6);
+        CHAR_WIDTH.put('W', 6);
+        CHAR_WIDTH.put('X', 6);
+        CHAR_WIDTH.put('Y', 6);
+        CHAR_WIDTH.put('Z', 6);
+        CHAR_WIDTH.put('[', 4);
+        CHAR_WIDTH.put('\\', 6);
+        CHAR_WIDTH.put(']', 4);
+        CHAR_WIDTH.put('^', 6);
+        CHAR_WIDTH.put('_', 6);
+        CHAR_WIDTH.put('`', 3);
+        CHAR_WIDTH.put('a', 6);
+        CHAR_WIDTH.put('b', 6);
+        CHAR_WIDTH.put('c', 6);
+        CHAR_WIDTH.put('d', 6);
+        CHAR_WIDTH.put('e', 6);
+        CHAR_WIDTH.put('f', 5);
+        CHAR_WIDTH.put('g', 6);
+        CHAR_WIDTH.put('h', 6);
+        CHAR_WIDTH.put('i', 2);
+        CHAR_WIDTH.put('j', 6);
+        CHAR_WIDTH.put('k', 5);
+        CHAR_WIDTH.put('l', 3);
+        CHAR_WIDTH.put('m', 6);
+        CHAR_WIDTH.put('n', 6);
+        CHAR_WIDTH.put('o', 6);
+        CHAR_WIDTH.put('p', 6);
+        CHAR_WIDTH.put('q', 6);
+        CHAR_WIDTH.put('r', 6);
+        CHAR_WIDTH.put('s', 6);
+        CHAR_WIDTH.put('t', 4);
+        CHAR_WIDTH.put('u', 6);
+        CHAR_WIDTH.put('v', 6);
+        CHAR_WIDTH.put('w', 6);
+        CHAR_WIDTH.put('x', 6);
+        CHAR_WIDTH.put('y', 6);
+        CHAR_WIDTH.put('z', 6);
+        CHAR_WIDTH.put('{', 5);
+        CHAR_WIDTH.put('|', 2);
+        CHAR_WIDTH.put('}', 5);
+        CHAR_WIDTH.put('~', 7);
+    }
+    
     private String centerText(String text) {
-        int chatWidth = 320;
+        String cleanText = text.replaceAll("(?i)&[0-9a-fklmnor]|&#[0-9a-f]{6}", "");
+        
         int textWidth = 0;
         boolean isBold = false;
         
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
+            
             if (c == '&' && i + 1 < text.length()) {
                 char code = text.charAt(i + 1);
                 if (code == 'l' || code == 'L') {
                     isBold = true;
-                } else if (code == 'r' || code == 'R') {
+                    i++;
+                } else if ("0123456789abcdefklmnor".indexOf(code) != -1) {
                     isBold = false;
+                    i++;
+                } else if (code == '#') {
+                    if (i + 7 < text.length()) {
+                        isBold = false;
+                        i += 7;
+                    }
                 }
-                i++;
-                continue;
-            }
-            // Ancho aproximado de los caracteres en Minecraft
-            int charWidth = 6; 
-            if ("filI:".indexOf(c) != -1) {
-                charWidth = 4;
-            } else if ("klmMWw".indexOf(c) != -1) {
-                charWidth = 7;
-            } else if (c == ' ') {
-                charWidth = 4;
-            }
-            
-            if (isBold) {
-                textWidth += charWidth + 1;
             } else {
-                textWidth += charWidth;
+                int charWidth = CHAR_WIDTH.getOrDefault(c, 6);
+                if (isBold) {
+                    textWidth += charWidth + CHAT_CHARACTER_SPACING;
+                } else {
+                    textWidth += charWidth;
+                }
             }
-        }
-        
-        int spacesNeeded = (chatWidth - textWidth) / 8; // Ancho de un espacio
-        if (spacesNeeded <= 0) {
-            return text;
         }
 
+        int spacesToCenter = (CHAT_WIDTH - textWidth) / (CHAR_WIDTH.getOrDefault(' ', 4) + CHAT_PADDING);
+        
+        if (spacesToCenter < 0) {
+            return text;
+        }
+        
         StringBuilder centeredText = new StringBuilder();
-        for (int i = 0; i < spacesNeeded / 2; i++) {
+        for (int i = 0; i < spacesToCenter; i++) {
             centeredText.append(" ");
         }
         centeredText.append(text);
