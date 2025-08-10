@@ -82,4 +82,4 @@ public class DirectoCommand implements SimpleCommand {
             return;
         }
 
-        Map<String, Object> platformConfig = (Map<String, Object>) platforms.get(platform.toLowerCase());
+        Map<String, Object> platformConfig = (Map<String
