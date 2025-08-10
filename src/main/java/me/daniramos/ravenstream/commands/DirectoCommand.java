@@ -8,6 +8,8 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.HashMap;
 
 public class DirectoCommand implements SimpleCommand {
@@ -115,9 +117,9 @@ public class DirectoCommand implements SimpleCommand {
         return null;
     }
     
-    // Ancho de los caracteres para la fuente de Minecraft.
     private static final int CHAT_WIDTH = 320;
     private static final int CHAT_CHARACTER_SPACING = 1;
+    private static final int CHAT_PADDING = 2;
     private static final Map<Character, Integer> CHAR_WIDTH = new HashMap<>();
     
     static {
@@ -218,58 +220,51 @@ public class DirectoCommand implements SimpleCommand {
         CHAR_WIDTH.put('~', 7);
     }
     
-    /**
-     * Calcula y centra el texto en el chat.
-     * La lógica se ha refactorizado para calcular la longitud
-     * de una versión "limpia" del texto, sin códigos de color.
-     *
-     * @param text El texto que contiene los códigos de color (ej. &e o &#FFFFFF).
-     * @return El texto centrado con los espacios necesarios.
-     */
     private String centerText(String text) {
-        // 1. Obtener la longitud visible del texto sin códigos de color
-        int textWidth = getVisibleTextWidth(text);
-
-        // 2. Calcular los espacios necesarios para centrar
-        int spacesToCenter = (CHAT_WIDTH - textWidth) / (CHAR_WIDTH.getOrDefault(' ', 4) + CHAT_CHARACTER_SPACING);
-
-        // 3. Devolver el texto original con los espacios añadidos
-        if (spacesToCenter <= 0) {
-            return text;
+        String cleanText = text.replaceAll("(?i)&[0-9a-fklmnor]|&#[0-9a-f]{6}", "");
+        
+        int textWidth = 0;
+        boolean isBold = false;
+        
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+            
+            if (c == '&' && i + 1 < text.length()) {
+                char code = text.charAt(i + 1);
+                if (code == 'l' || code == 'L') {
+                    isBold = true;
+                    i++;
+                } else if ("0123456789abcdefklmnor".indexOf(code) != -1) {
+                    isBold = false;
+                    i++;
+                } else if (code == '#') {
+                    if (i + 7 < text.length()) {
+                        isBold = false;
+                        i += 7;
+                    }
+                }
+            } else {
+                int charWidth = CHAR_WIDTH.getOrDefault(c, 6);
+                if (isBold) {
+                    textWidth += charWidth + CHAT_CHARACTER_SPACING;
+                } else {
+                    textWidth += charWidth;
+                }
+            }
         }
 
+        int spacesToCenter = (CHAT_WIDTH - textWidth) / (CHAR_WIDTH.getOrDefault(' ', 4) + CHAT_PADDING);
+        
+        if (spacesToCenter < 0) {
+            return text;
+        }
+        
         StringBuilder centeredText = new StringBuilder();
         for (int i = 0; i < spacesToCenter; i++) {
             centeredText.append(" ");
         }
         centeredText.append(text);
-
+        
         return centeredText.toString();
-    }
-    
-    /**
-     * Calcula la anchura real de un string eliminando los códigos de color primero.
-     * Esta es la clave para un centrado correcto.
-     *
-     * @param text El texto a medir, incluyendo los códigos de color.
-     * @return La anchura total del texto visible.
-     */
-    private int getVisibleTextWidth(String text) {
-        // Elimina todos los códigos de color legacy (&) y de hex (#) del texto.
-        String cleanedText = text.replaceAll("(?i)&[0-9a-fklmnor]|&#[0-9a-f]{6}", "");
-        
-        int textWidth = 0;
-        for (int i = 0; i < cleanedText.length(); i++) {
-            char c = cleanedText.charAt(i);
-            textWidth += CHAR_WIDTH.getOrDefault(c, 6) + CHAT_CHARACTER_SPACING;
-        }
-        
-        // El ancho se calcula con un espaciado de 1px entre cada caracter.
-        // Pero el último caracter no tiene espaciado, por lo que se ajusta.
-        if (cleanedText.length() > 0) {
-            textWidth -= CHAT_CHARACTER_SPACING;
-        }
-        
-        return textWidth;
     }
 }
