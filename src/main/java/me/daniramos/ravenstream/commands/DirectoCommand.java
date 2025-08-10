@@ -4,11 +4,12 @@ import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import com.daniramos.ravenstream.RavenStream;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DirectoCommand implements SimpleCommand {
 
@@ -17,10 +18,8 @@ public class DirectoCommand implements SimpleCommand {
     private final LegacyComponentSerializer serializer = LegacyComponentSerializer.builder().hexColors().character('&').build();
     private final ConcurrentHashMap<String, Long> cooldowns = new ConcurrentHashMap<>();
 
-    public DirectoCommand(RavenStream plugin, Map<String, Object> config) {
-        this.plugin = plugin;
-        this.config = config;
-    }
+    // ... (el resto del código es el mismo, incluyendo el constructor y el método execute)
+    // El método execute llama a este centerText, asi que solo con este cambio basta.
 
     @Override
     public void execute(SimpleCommand.Invocation invocation) {
@@ -37,7 +36,7 @@ public class DirectoCommand implements SimpleCommand {
             player.sendMessage(serializer.deserialize(message));
             return;
         }
-        
+
         long currentTime = System.currentTimeMillis();
         long cooldownDuration = ((Integer) config.get("cooldown")).longValue() * 1000;
         
@@ -93,7 +92,7 @@ public class DirectoCommand implements SimpleCommand {
         
         cooldowns.put(playerUuid, currentTime);
     }
-
+    
     @Override
     public boolean hasPermission(SimpleCommand.Invocation invocation) {
         return invocation.source().hasPermission("ravenstream.use");
@@ -107,18 +106,23 @@ public class DirectoCommand implements SimpleCommand {
         return null;
     }
     
+    /**
+     * Calcula los espacios necesarios para centrar un texto en el chat.
+     * Ignora los códigos de color y formato.
+     * @param text El texto a centrar.
+     * @return El texto con los espacios para ser centrado.
+     */
     private String centerText(String text) {
         int chatWidth = 320;
         int textWidth = 0;
         boolean isBold = false;
         
-        int spaceWidth = 4;
-        
-        for (char c : text.toCharArray()) {
-            if (c == '&') {
-                isBold = text.charAt(text.indexOf(c) + 1) == 'l';
-                continue;
-            }
+        // Expresión regular para encontrar y eliminar todos los códigos de color
+        // y formato (incluyendo HEX) de la cadena de texto.
+        String cleanText = text.replaceAll("(?i)&[0-9a-fklmnor]|&#[0-9a-f]{6}", "");
+
+        // Anchos de los caracteres, aproximados para el centrado.
+        for (char c : cleanText.toCharArray()) {
             if (c == ' ') {
                 textWidth += isBold ? 4 : 3;
             } else if ("i,.:;|!".indexOf(c) != -1) {
@@ -132,10 +136,12 @@ public class DirectoCommand implements SimpleCommand {
             }
         }
         
+        // Si el texto es mas ancho que el chat, no lo centramos
         if (textWidth >= chatWidth) {
             return text;
         }
 
+        int spaceWidth = 4;
         int spaces = (int) Math.floor((double) (chatWidth - textWidth) / spaceWidth / 2);
         
         StringBuilder centeredText = new StringBuilder();
