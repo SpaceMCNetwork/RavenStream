@@ -50,7 +50,6 @@ public class RavenStream {
         logger.info("El plugin RavenStream ha sido inicializado.");
     }
     
-    // Método público para recargar la configuración
     public void reloadConfig() {
         loadConfig();
     }
@@ -80,5 +79,9 @@ public class RavenStream {
         } catch (IOException e) {
             logger.error("No se pudo cargar el archivo de configuración: " + e.getMessage());
         }
+    }
+    
+    public Map<String, Object> getConfig() {
+        return this.config;
     }
 }
