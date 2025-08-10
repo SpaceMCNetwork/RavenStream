@@ -59,6 +59,17 @@ public class DirectoCommand implements SimpleCommand {
         }
 
         String link = invocation.arguments()[0];
+        
+        // --- INICIO DEL CAMBIO ---
+        // Verificar y agregar el prefijo "https://www." si es necesario
+        if (!link.startsWith("https://")) {
+            link = "https://" + link;
+        }
+        if (!link.startsWith("https://www.")) {
+             link = link.replace("https://", "https://www.");
+        }
+        // --- FIN DEL CAMBIO ---
+        
         String platform = getPlatform(link);
 
         if (platform == null) {
