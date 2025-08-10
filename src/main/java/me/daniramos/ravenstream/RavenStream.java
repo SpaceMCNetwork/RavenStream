@@ -1,30 +1,24 @@
-package com.daniramos.ravenstream;
+package me.daniramos.ravenstream;
 
 import com.google.inject.Inject;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.plugin.Plugin;
-import com.velocitypowered.api.proxy.ProxyServer;
-import com.velocitypowered.api.command.CommandManager;
-import com.daniramos.ravenstream.commands.DirectoCommand;
-import com.daniramos.ravenstream.commands.DReloadCommand;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
+import com.velocitypowered.api.proxy.ProxyServer;
+import org.slf4j.Logger;
+import me.daniramos.ravenstream.commands.DirectoCommand;
+
+import java.nio.file.Path;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
-import org.slf4j.Logger;
 import org.yaml.snakeyaml.Yaml;
 
-@Plugin(
-    id = "ravenstream",
-    name = "RavenStream",
-    version = "1.0",
-    description = "Publicita tu stream en el servidor.",
-    authors = {"DaniRamos"}
-)
+@Plugin(id = "ravenstream", name = "RavenStream", version = "1.0-SNAPSHOT",
+        description = "Publica tus directos de forma simple en todo el servidor.",
+        authors = {"DaniRamos"})
 public class RavenStream {
 
     private final ProxyServer server;
@@ -41,47 +35,42 @@ public class RavenStream {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        loadConfig();
-        
-        CommandManager commandManager = server.getCommandManager();
-        commandManager.register(commandManager.metaBuilder("directo").build(), new DirectoCommand(this.server, this.config));
-        commandManager.register(commandManager.metaBuilder("dreload").build(), new DReloadCommand(this));
-        
-        logger.info("El plugin RavenStream ha sido inicializado.");
+        if (!loadConfig()) {
+            logger.error("No se pudo cargar el archivo de configuración. Desactivando el plugin.");
+            return;
+        }
+
+        server.getCommandManager().register("directo", new DirectoCommand(server, config));
+        logger.info("El plugin RavenStream se ha activado correctamente.");
     }
-    
-    public void reloadConfig() {
-        loadConfig();
-    }
-    
-    private void loadConfig() {
+
+    private boolean loadConfig() {
         if (!Files.exists(dataDirectory)) {
             try {
                 Files.createDirectories(dataDirectory);
             } catch (IOException e) {
-                logger.error("Error al crear la carpeta de datos del plugin: " + e.getMessage());
-                return;
+                logger.error("No se pudo crear el directorio de datos", e);
+                return false;
             }
         }
-        
-        File configFile = new File(dataDirectory.toFile(), "config.yml");
+
+        File configFile = dataDirectory.resolve("config.yml").toFile();
         if (!configFile.exists()) {
-            try (InputStream in = getClass().getResourceAsStream("/config.yml")) {
-                Files.copy(in, configFile.toPath());
+            try {
+                Files.copy(getClass().getResourceAsStream("/config.yml"), configFile.toPath());
             } catch (IOException e) {
-                logger.error("No se pudo crear el archivo de configuración: " + e.getMessage());
+                logger.error("No se pudo crear el archivo de configuración por defecto", e);
+                return false;
             }
         }
 
         try {
             Yaml yaml = new Yaml();
-            config = yaml.load(Files.newBufferedReader(configFile.toPath()));
+            config = yaml.load(Files.newInputStream(configFile.toPath()));
+            return true;
         } catch (IOException e) {
-            logger.error("No se pudo cargar el archivo de configuración: " + e.getMessage());
+            logger.error("Error al leer el archivo de configuración", e);
+            return false;
         }
-    }
-    
-    public Map<String, Object> getConfig() {
-        return this.config;
     }
 }
