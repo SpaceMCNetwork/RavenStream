@@ -8,6 +8,7 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import org.slf4j.Logger;
 import me.daniramos.ravenstream.commands.DirectoCommand;
+import me.daniramos.ravenstream.commands.ReloadCommand;
 
 import java.nio.file.Path;
 import java.io.File;
@@ -35,22 +36,23 @@ public class RavenStream {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        if (!loadConfig()) {
-            logger.error("No se pudo cargar el archivo de configuración. Desactivando el plugin.");
-            return;
-        }
-
+        loadConfig();
         server.getCommandManager().register("directo", new DirectoCommand(server, config));
+        server.getCommandManager().register("dreload", new ReloadCommand(this, logger));
         logger.info("El plugin RavenStream se ha activado correctamente.");
     }
+    
+    public void reloadConfig() {
+        loadConfig();
+    }
 
-    private boolean loadConfig() {
+    private void loadConfig() {
         if (!Files.exists(dataDirectory)) {
             try {
                 Files.createDirectories(dataDirectory);
             } catch (IOException e) {
                 logger.error("No se pudo crear el directorio de datos", e);
-                return false;
+                return;
             }
         }
 
@@ -60,17 +62,15 @@ public class RavenStream {
                 Files.copy(getClass().getResourceAsStream("/config.yml"), configFile.toPath());
             } catch (IOException e) {
                 logger.error("No se pudo crear el archivo de configuración por defecto", e);
-                return false;
+                return;
             }
         }
 
         try {
             Yaml yaml = new Yaml();
             config = yaml.load(Files.newInputStream(configFile.toPath()));
-            return true;
         } catch (IOException e) {
             logger.error("Error al leer el archivo de configuración", e);
-            return false;
         }
     }
 }
