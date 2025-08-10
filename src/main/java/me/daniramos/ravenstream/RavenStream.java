@@ -7,6 +7,7 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.command.CommandManager;
 import com.daniramos.ravenstream.commands.DirectoCommand;
+import com.daniramos.ravenstream.commands.DReloadCommand;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import java.io.File;
 import java.io.IOException;
@@ -43,10 +44,15 @@ public class RavenStream {
         loadConfig();
         
         CommandManager commandManager = server.getCommandManager();
-        // Se crea una nueva instancia del comando y se le pasan las dependencias.
         commandManager.register(commandManager.metaBuilder("directo").build(), new DirectoCommand(this.server, this.config));
+        commandManager.register(commandManager.metaBuilder("dreload").build(), new DReloadCommand(this));
         
         logger.info("El plugin RavenStream ha sido inicializado.");
+    }
+    
+    // Método público para recargar la configuración
+    public void reloadConfig() {
+        loadConfig();
     }
     
     private void loadConfig() {
