@@ -1,0 +1,10 @@
+{
+  "id": "ravenstream",
+  "name": "RavenStream",
+  "version": "1.0",
+  "description": "Publicita tu stream en el servidor.",
+  "authors": [
+    "DaniRamos"
+  ],
+  "main": "com.daniramos.ravenstream.RavenStream"
+}
