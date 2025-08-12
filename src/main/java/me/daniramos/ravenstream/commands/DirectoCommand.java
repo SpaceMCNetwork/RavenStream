@@ -93,19 +93,20 @@ public class DirectoCommand implements SimpleCommand {
             return;
         }
 
-        // --- LÓGICA MODIFICADA PARA HACER EL ENLACE CLICABLE ---
         for (String line : messageLines) {
             int linkIndex = line.indexOf("%link%");
 
             if (linkIndex != -1) {
-                // La línea contiene %link%
                 Component prefix = serializer.deserialize(line.substring(0, linkIndex).replace("%player%", player.getUsername()));
                 Component suffix = serializer.deserialize(line.substring(linkIndex + "%link%".length()));
 
-                // Crea el componente del enlace con el evento de clic y el hover
                 Component linkComponent = Component.text(link)
                         .clickEvent(ClickEvent.openUrl(link))
                         .hoverEvent(HoverEvent.showText(Component.text("¡Haz clic para ver el directo!")));
 
-                // Combina todos los componentes en un solo mensaje
-                Component finalMessage = Component.empty().append(prefix).append(linkComponent).append(suffix
+                Component finalMessage = Component.empty().append(prefix).append(linkComponent).append(suffix);
+                server.getAllPlayers().forEach(p -> p.sendMessage(finalMessage));
+            } else {
+                String formattedLine = line.replace("%player%", player.getUsername())
+                                           .replace("%link%", link);
+                server.getAllPlayers().forEach(p -> p.sendMessage(serializer.deserialize(formattedLine)));
