@@ -4,16 +4,17 @@ import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import me.daniramos.ravenstream.legacy.LegacyProcessor;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DirectoCommand implements SimpleCommand {
-
     private final ProxyServer server;
     private final Map<String, Object> config;
-    private final LegacyComponentSerializer serializer = LegacyComponentSerializer.builder().hexColors().character('&').build();
+    public static final MiniMessage miniMessage = MiniMessage.builder().postProcessor(new LegacyProcessor()).build();
     private final ConcurrentHashMap<String, Long> cooldowns = new ConcurrentHashMap<>();
 
     public DirectoCommand(ProxyServer server, Map<String, Object> config) {
@@ -23,82 +24,90 @@ public class DirectoCommand implements SimpleCommand {
 
     @Override
     public void execute(SimpleCommand.Invocation invocation) {
-        if (!(invocation.source() instanceof Player)) {
+        if (!(invocation.source() instanceof Player player)) {
             invocation.source().sendMessage(Component.text("Solo los jugadores pueden usar este comando."));
             return;
         }
 
-        Player player = (Player) invocation.source();
-        String playerUuid = player.getUniqueId().toString();
-
         if (!player.hasPermission("ravenstream.use")) {
-            String message = (String) ((Map<String, Object>) config.get("messages")).get("no_permission");
-            player.sendMessage(serializer.deserialize(message));
+            sendMessage(player, "no_permission");
             return;
         }
 
+        String playerUuid = player.getUniqueId().toString();
         long currentTime = System.currentTimeMillis();
         long cooldownDuration = ((Integer) config.get("cooldown")).longValue() * 1000;
-        
-        if (cooldowns.containsKey(playerUuid)) {
-            long lastUsed = cooldowns.get(playerUuid);
-            if (currentTime - lastUsed < cooldownDuration) {
-                long remaining = (cooldownDuration - (currentTime - lastUsed)) / 1000;
-                String message = (String) ((Map<String, Object>) config.get("messages")).get("cooldown_message");
-                player.sendMessage(serializer.deserialize(message.replace("%cooldown%", String.valueOf(remaining))));
-                return;
-            }
-        }
-        
-        if (invocation.arguments().length == 0) {
-            String message = (String) ((Map<String, Object>) config.get("messages")).get("usage");
-            player.sendMessage(serializer.deserialize(message));
+
+        if (isOnCooldown(playerUuid, currentTime, cooldownDuration)) {
+            long remaining = (cooldownDuration - (currentTime - cooldowns.get(playerUuid))) / 1000;
+            String message = getMessage("cooldown_message").replace("%cooldown%", String.valueOf(remaining));
+            player.sendMessage(miniMessage.deserialize(message));
             return;
         }
 
-        String link = invocation.arguments()[0];
-        
-        if (!link.startsWith("https://")) {
-            link = "https://" + link;
+        if (invocation.arguments().length == 0) {
+            sendMessage(player, "usage");
+            return;
         }
-        if (!link.startsWith("https://www.")) {
-             link = link.replace("https://", "https://www.");
-        }
-        
+
+        String link = normalizeLink(invocation.arguments()[0]);
         String platform = getPlatform(link);
 
         if (platform == null) {
-            String message = (String) ((Map<String, Object>) config.get("messages")).get("invalid_link");
-            player.sendMessage(serializer.deserialize(message));
+            sendMessage(player, "invalid_link");
             return;
         }
 
-        Map<String, Object> platforms = (Map<String, Object>) config.get("platforms");
-        if (platforms == null) {
-            player.sendMessage(Component.text("Error en la configuración: La sección 'platforms' no existe."));
-            return;
-        }
+        broadcastStream(player, link, platform);
+        cooldowns.put(playerUuid, currentTime);
+    }
 
-        Map<String, Object> platformConfig = (Map<String, Object>) platforms.get(platform.toLowerCase());
-        if (platformConfig == null) {
-            player.sendMessage(Component.text("Error en la configuración: La plataforma '" + platform + "' no está configurada."));
-            return;
+    private boolean isOnCooldown(String playerUuid, long currentTime, long cooldownDuration) {
+        return cooldowns.containsKey(playerUuid) && 
+               (currentTime - cooldowns.get(playerUuid)) < cooldownDuration;
+    }
+
+    private String normalizeLink(String link) {
+        if (!link.startsWith("https://")) {
+            link = "https://" + link;
         }
+        if (!link.startsWith("https://www.") && !link.contains("youtu.be")) {
+            link = link.replace("https://", "https://www.");
+        }
+        return link;
+    }
+
+    private void broadcastStream(Player player, String link, String platform) {
+        Map<String, Object> platformConfig = getPlatformConfig(platform);
+        if (platformConfig == null) return;
 
         List<String> messageLines = (List<String>) platformConfig.get("message");
         if (messageLines == null || messageLines.isEmpty()) {
-            player.sendMessage(Component.text("Error en la configuración: El mensaje para la plataforma '" + platform + "' no está definido."));
+            player.sendMessage(Component.text("Error: Mensaje no configurado para " + platform));
             return;
         }
 
-        for (String line : messageLines) {
+        messageLines.forEach(line -> {
             String formattedLine = line
                 .replace("%player%", player.getUsername())
                 .replace("%link%", link);
-            server.getAllPlayers().forEach(p -> p.sendMessage(serializer.deserialize(formattedLine)));
-        }
-        
-        cooldowns.put(playerUuid, currentTime);
+            server.getAllPlayers().forEach(p -> 
+                p.sendMessage(miniMessage.deserialize(formattedLine)));
+        });
+    }
+
+    private Map<String, Object> getPlatformConfig(String platform) {
+        Map<String, Object> platforms = (Map<String, Object>) config.get("platforms");
+        return platforms != null ? (Map<String, Object>) platforms.get(platform.toLowerCase()) : null;
+    }
+
+    private void sendMessage(Player player, String key) {
+        player.sendMessage(miniMessage.deserialize(getMessage(key)));
+    }
+
+    private String getMessage(String key) {
+        Map<String, Object> messages = (Map<String, Object>) config.get("messages");
+        return (String) messages.get(key);
     }
 
     @Override
