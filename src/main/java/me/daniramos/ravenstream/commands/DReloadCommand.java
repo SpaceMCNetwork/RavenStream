@@ -1,4 +1,4 @@
-package com.daniramos.ravenstream.commands;
+package me.daniramos.ravenstream.commands;
 
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.command.SimpleCommand.Invocation;

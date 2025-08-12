@@ -1,0 +1,49 @@
+# Cooldown en segundos
+cooldown: 120
+
+# Mensajes de error y generales
+messages:
+  no_permission: '&5&lRaven &8» &cNo tienes permiso para usar este comando.'
+  usage: '&5&lRaven &8» &fDebes usar &e/directo <link>'
+  cooldown_message: '&5&lRaven &8» &cDebes esperar %cooldown% segundos para volver a usar el comando.'
+  invalid_link: '&5&lRaven &8» &cEl link no es de una plataforma de streaming válida (YouTube, Twitch, Kick, TikTok).'
+  reload_success: '&5&lRaven &8» &eHas recargado el plugin RavenStream correctamente.'
+  no_reload_permission: '&5&lRaven &8» &cNo tienes permiso para usar este comando.'
+
+# Configuración de mensajes por plataforma
+platforms:
+  twitch:
+    message:
+      - ''
+      - '&7&m----------------------------'
+      - '&#5b24c2%player% &festa en directo por &#5b24c2&lTWITCH&#6441a5.'
+      - '&8» &fApoyalo en &#5b24c2%link%'
+      - '&7&m----------------------------'
+      - ''
+  
+  youtube:
+    message:
+      - ''
+      - '&7&m----------------------------'
+      - '&#f20035%player% &festa en directo por &#f20035&lYOUTUBE&#FF0000.'
+      - '&8» &fApoyalo en &#f20035%link%'
+      - '&7&m----------------------------'
+      - ''
+      
+  kick:
+    message:
+      - ''
+      - '&7&m----------------------------'
+      - '&#0bda51%player% &festa en directo por &#0bda51&lKICK&#00e701.'
+      - '&8» &fApoyalo en &#0bda51%link%'
+      - '&7&m----------------------------'
+      - ''
+      
+  tiktok:
+    message:
+      - ''
+      - '&7&m----------------------------'
+      - '&#00f2ea%player% &festa en directo por &#00f2ea&lTIKTOK&e.'
+      - '&8» &fApoyalo en &#00f2ea%link%'
+      - '&7&m----------------------------'
+      - ''
