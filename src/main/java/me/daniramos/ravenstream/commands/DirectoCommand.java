@@ -4,6 +4,8 @@ import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import java.util.List;
 import java.util.Map;
@@ -58,13 +60,10 @@ public class DirectoCommand implements SimpleCommand {
 
         String link = invocation.arguments()[0];
         
-        if (!link.startsWith("https://")) {
+        if (!link.startsWith("https://") && !link.startsWith("http://")) {
             link = "https://" + link;
         }
-        if (!link.startsWith("https://www.")) {
-             link = link.replace("https://", "https://www.");
-        }
-        
+
         String platform = getPlatform(link);
 
         if (platform == null) {
@@ -92,10 +91,22 @@ public class DirectoCommand implements SimpleCommand {
         }
 
         for (String line : messageLines) {
-            String formattedLine = line
-                .replace("%player%", player.getUsername())
-                .replace("%link%", link);
-            server.getAllPlayers().forEach(p -> p.sendMessage(serializer.deserialize(formattedLine)));
+            // Reemplaza el marcador de posición del enlace con un Componente clicable
+            if (line.contains("%link%")) {
+                Component formattedLine = serializer.deserialize(line.replace("%player%", player.getUsername()));
+                Component linkComponent = Component.text(link, NamedTextColor.AQUA)
+                        .clickEvent(ClickEvent.openUrl(link))
+                        .clickEvent(ClickEvent.copyToClipboard(link));
+                
+                Component finalMessage = formattedLine.replaceText(builder -> builder.matchLiteral("%link%").replacement(linkComponent));
+                server.getAllPlayers().forEach(p -> p.sendMessage(finalMessage));
+            } else {
+                // Para líneas que no contienen el enlace
+                String formattedLine = line
+                    .replace("%player%", player.getUsername())
+                    .replace("%link%", link);
+                server.getAllPlayers().forEach(p -> p.sendMessage(serializer.deserialize(formattedLine)));
+            }
         }
         
         cooldowns.put(playerUuid, currentTime);
