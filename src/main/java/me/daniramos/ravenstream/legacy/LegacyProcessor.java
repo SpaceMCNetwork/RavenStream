@@ -1,4 +1,4 @@
-package rip.snake.games.utils.colors;
+package me.daniramos.ravenstream.legacy;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;

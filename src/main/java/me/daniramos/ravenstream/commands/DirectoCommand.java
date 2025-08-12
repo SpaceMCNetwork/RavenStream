@@ -1,11 +1,11 @@
-package com.daniramos.ravenstream.commands;
+package me.daniramos.ravenstream.commands;
 
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
+import me.daniramos.ravenstream.legacy.LegacyProcessor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import me.daniramos.ravenstream.legacy.LegacyProcessor;
 
 import java.util.List;
 import java.util.Map;
