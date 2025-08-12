@@ -5,7 +5,7 @@ import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import java.util.List;
 import java.util.Map;
@@ -52,76 +52,4 @@ public class DirectoCommand implements SimpleCommand {
             }
         }
         
-        if (invocation.arguments().length == 0) {
-            String message = (String) ((Map<String, Object>) config.get("messages")).get("usage");
-            player.sendMessage(serializer.deserialize(message));
-            return;
-        }
-
-        String link = invocation.arguments()[0];
-        
-        if (!link.startsWith("https://") && !link.startsWith("http://")) {
-            link = "https://" + link;
-        }
-
-        String platform = getPlatform(link);
-
-        if (platform == null) {
-            String message = (String) ((Map<String, Object>) config.get("messages")).get("invalid_link");
-            player.sendMessage(serializer.deserialize(message));
-            return;
-        }
-
-        Map<String, Object> platforms = (Map<String, Object>) config.get("platforms");
-        if (platforms == null) {
-            player.sendMessage(Component.text("Error en la configuración: La sección 'platforms' no existe."));
-            return;
-        }
-
-        Map<String, Object> platformConfig = (Map<String, Object>) platforms.get(platform.toLowerCase());
-        if (platformConfig == null) {
-            player.sendMessage(Component.text("Error en la configuración: La plataforma '" + platform + "' no está configurada."));
-            return;
-        }
-
-        List<String> messageLines = (List<String>) platformConfig.get("message");
-        if (messageLines == null || messageLines.isEmpty()) {
-            player.sendMessage(Component.text("Error en la configuración: El mensaje para la plataforma '" + platform + "' no está definido."));
-            return;
-        }
-
-        for (String line : messageLines) {
-            // Reemplaza el marcador de posición del enlace con un Componente clicable
-            if (line.contains("%link%")) {
-                Component formattedLine = serializer.deserialize(line.replace("%player%", player.getUsername()));
-                Component linkComponent = Component.text(link, NamedTextColor.AQUA)
-                        .clickEvent(ClickEvent.openUrl(link))
-                        .clickEvent(ClickEvent.copyToClipboard(link));
-                
-                Component finalMessage = formattedLine.replaceText(builder -> builder.matchLiteral("%link%").replacement(linkComponent));
-                server.getAllPlayers().forEach(p -> p.sendMessage(finalMessage));
-            } else {
-                // Para líneas que no contienen el enlace
-                String formattedLine = line
-                    .replace("%player%", player.getUsername())
-                    .replace("%link%", link);
-                server.getAllPlayers().forEach(p -> p.sendMessage(serializer.deserialize(formattedLine)));
-            }
-        }
-        
-        cooldowns.put(playerUuid, currentTime);
-    }
-
-    @Override
-    public boolean hasPermission(SimpleCommand.Invocation invocation) {
-        return invocation.source().hasPermission("ravenstream.use");
-    }
-
-    private String getPlatform(String link) {
-        if (link.contains("twitch.tv")) return "Twitch";
-        if (link.contains("youtube.com") || link.contains("youtu.be")) return "YouTube";
-        if (link.contains("kick.com")) return "Kick";
-        if (link.contains("tiktok.com")) return "TikTok";
-        return null;
-    }
-}
+        if (invocation.arguments().length == 0
