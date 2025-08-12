@@ -4,6 +4,8 @@ import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import java.util.List;
 import java.util.Map;
@@ -91,26 +93,19 @@ public class DirectoCommand implements SimpleCommand {
             return;
         }
 
+        // --- LÓGICA MODIFICADA PARA HACER EL ENLACE CLICABLE ---
         for (String line : messageLines) {
-            String formattedLine = line
-                .replace("%player%", player.getUsername())
-                .replace("%link%", link);
-            server.getAllPlayers().forEach(p -> p.sendMessage(serializer.deserialize(formattedLine)));
-        }
-        
-        cooldowns.put(playerUuid, currentTime);
-    }
+            int linkIndex = line.indexOf("%link%");
 
-    @Override
-    public boolean hasPermission(SimpleCommand.Invocation invocation) {
-        return invocation.source().hasPermission("ravenstream.use");
-    }
+            if (linkIndex != -1) {
+                // La línea contiene %link%
+                Component prefix = serializer.deserialize(line.substring(0, linkIndex).replace("%player%", player.getUsername()));
+                Component suffix = serializer.deserialize(line.substring(linkIndex + "%link%".length()));
 
-    private String getPlatform(String link) {
-        if (link.contains("twitch.tv")) return "Twitch";
-        if (link.contains("youtube.com") || link.contains("youtu.be")) return "YouTube";
-        if (link.contains("kick.com")) return "Kick";
-        if (link.contains("tiktok.com")) return "TikTok";
-        return null;
-    }
-}
+                // Crea el componente del enlace con el evento de clic y el hover
+                Component linkComponent = Component.text(link)
+                        .clickEvent(ClickEvent.openUrl(link))
+                        .hoverEvent(HoverEvent.showText(Component.text("¡Haz clic para ver el directo!")));
+
+                // Combina todos los componentes en un solo mensaje
+                Component finalMessage = Component.empty().append(prefix).append(linkComponent).append(suffix
